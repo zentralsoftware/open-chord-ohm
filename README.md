@@ -8,9 +8,7 @@ A copy of the license can be found at http://www.gnu.org/copyleft/gpl.html.
 Requirements: 
 
 - Java 1.7
-- Log4j (http://logging.apache.org) required in order to compile Open Chord
-  from sources. 
+- Log4j
 - JUnit
 - MapsDB
 - Maven
- 
