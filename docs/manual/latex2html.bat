@@ -1,0 +1,1 @@
+c:\Programme\latex2html\bin\latex2html.bat -split +1 -t test -long_titles 4 -info 0 html_manual

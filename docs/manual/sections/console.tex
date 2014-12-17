@@ -1,0 +1,367 @@
+\section{The Open Chord Console}\label{sectionconsole}
+
+For testing purposes Open Chord provides a console, from which a network can be 
+created. For this console a {\tt Key} implementation based on {\tt String} similar 
+to that described in the previous section is being used. Instances of
+{\tt String} are used as data. There are two 
+possibilities two create/join an Open Chord network. The first one uses the 
+{\tt oclocal} protocol to create a network within one JVM. Therefore many local peers 
+can be created with help of the console. The other possibility is to instantiate 
+a single peer that uses {\tt ocsocket} protocol to create or join a remote 
+Open Chord network. 
+
+In order to start the console the following command has to be executed:  
+\begin{verbatim}
+java -cp OC_DIR/build/classes;OC_DIR/config;OC_DIR/lib/log4j.jar 
+de.uniba.wiai.lspi.chord.console.Main
+\end{verbatim}
+{\tt OC$\_$DIR} is the directory where the directory structure of Open Chord 
+as described in section \ref{installation} has been created. If console 
+execution is successful, your screen looks as presented in figure \ref{console}. 
+Note that the reference to {\tt log4j} in the classpath ({\tt cp}) is optional 
+as {\tt log4j} is not required to use Open Chord.  
+
+\bildw{console}{console}{Open Chord console.}{16}
+
+When the console is running it waits for commands to be typed in. There are 
+two kinds of commands. The first kind of commands is designed to be used 
+with an Open Chord network that runs within one JVM. The second kind of 
+commands is designed to be used with a single peer, that is connected to 
+other remote peers to create a Open Chord network. 
+The next sections (\ref{localcom}, \ref{remotecom}) describe these 
+commands and how they can be used. 
+
+There are also some other commands available from the console. 
+To get a list of available commands from the console type {\tt help} at 
+the prompt and press enter. Every listed command also provides help 
+to the user, when it is issued with the parameter {\tt -h} or {\tt -help}. 
+To close the console type {\tt exit}. 
+In order to prevent the console from becoming unreadable if classes use 
+{\tt System.out}, {\tt System.out} is redirected and the output is saved in 
+memory. To display this output type {\tt displaySystemOut}. Output of 
+{\tt System.err} is still printed to the console. 
+Some times it may be useful to repeatedly execute the same commands in the same 
+order. For this purpose a macro can be created. This macro is a simple text file, 
+which contains a command in each line. This macro file can be loaded and executed 
+with help of the {\tt executeMacro} command. 
+
+\subsection{Simulating a Chord overlay network in one JVM}\label{localcom}
+With the {\tt oclocal} communication protocol for Open Chord it is possible 
+to create an Open Chord network within one JVM. For this purpose the console 
+provides commands, that can be used to e.g. create a network, insert data, or 
+crash a node. As most of the commands affect only one peer the name of this peer 
+must be provided to these commands. Names of peers have to be unique within 
+the JVM and an {\tt URL} of a peer, that uses the {\tt oclocal} protocol, 
+contains the name of the peer as the host part of the {\tt URL} (e.g. {\tt oclocal://mypeer/}. 
+
+These commands are: 
+\begin{itemize}
+%
+\item {\tt create}: A new network can be created or 
+an existing network can be joined with this command. 
+To create a new network this command 
+expects one name of a peer provided with help of the {\tt names} parameter
+(e.g. {\tt create -names mypeer}). If a network exists, this command can 
+be used to create a number of peers at once. The names of the peers must 
+be concatenated with help of '{\tt $\_$}'. In addition to the names 
+a list of bootstrap peers is required. These list must at least contain 
+one name of an existing peer. If there is more than one bootstrap peer, 
+the names must again be separated by '{\tt $\_$}'. 
+
+{\bf Example:}\footnote{If the examples in this section are processed in the 
+same order as in this manual, their output will look similar to the examples!}
+\begin{verbatim}
+oc > create -names mypeer0 
+Creating new chord network. 
+oc > create -names mypeer1_mypeer2 -bootstraps mypeer0
+Starting node with name 'mypeer1' with bootstrap node 'mypeer0'
+Starting node with name 'mypeer2' with bootstrap node 'mypeer0'
+oc > create -names mypeer3_mypeer4_mypeer5 -bootstraps mypeer0_mypeer1
+Starting node with name 'mypeer3' with bootstrap node 'mypeer0'
+Starting node with name 'mypeer4' with bootstrap node 'mypeer1'
+Starting node with name 'mypeer5' with bootstrap node 'mypeer1'
+oc > 
+\end{verbatim}
+First a new network with a single peer with name {\tt mypeer0} is created. 
+Afterward two peers, that use both {\tt mypeer0} as bootstrap node are simultaneously 
+created. Then three peers are created. The first one uses {\tt mypeer0} as bootstrap 
+peer and the last two use {\tt mypeer1} as bootstrap peer. Bootstrap peers from 
+the list are assigned to the peers at the same position of the list of peers to create. 
+If there are fewer bootstrap peers than peers to create, the last bootstrap peer 
+of the bootstrap peer list is assigned to all peers at the end of the list as a 
+bootstrap peer. 
+%
+\item {\tt insert}: This command can be used to insert a {\tt String} with a 
+certain key into the Chord DHT. This command expects three parameters: {\tt node}, 
+{\tt key}, and {\tt value}. The first one is the name of the peer, from which the 
+insert request is issued. The second parameter is the key, that is used to store 
+the {\tt String}, which is provided with help of the third parameter. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > insert -node mypeer1 -key test -value test
+Value 'test' with key 'test' inserted successfully from node 'mypeer1'.
+oc >
+\end{verbatim}
+%
+\item {\tt entries}: This command can be used to print the data and the associated 
+keys stored by all peers in the network. If the name of the peer is provided with 
+help of parameter {\tt node} the entries of this peer are printed to the console. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > entries
+Node mypeer5: Entries:
+  key = A9 , value = [( key = A9 , value = test)]
+
+Node mypeer0: Entries:
+
+Node mypeer3: Entries:
+  key = A9 , value = [( key = A9 , value = test)]
+
+Node mypeer2: Entries:
+  key = A9 , value = [( key = A9 , value = test)]
+
+Node mypeer1: Entries:
+
+Node mypeer4: Entries:
+
+oc > entries -node mypeer5
+Retrieving node mypeer5
+Entries:
+  key = A9 , value = [( key = A9 , value = test)]
+
+oc >
+\end{verbatim}
+In this example it can be noted that data is replicated twice, as the 
+property 
+{\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-service.\-impl.\-ChordImpl.\-successors} 
+(see section \ref{config}) has been set to {\tt 2}. Therefore three peers 
+have stored the data inserted in the previous example. 
+The property 
+{\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-data.\-ID.\-number.\-of.\-displayed.\-bytes}
+has been set to {\tt 1}. For this reason the first byte of the key of data item 
+{\tt test} are displayed as a hexadecimal number. 
+%
+\item {\tt retrieve}: This command can be used to retrieve all data stored 
+for a provided key within the DHT. For this purpose two parameters are required:  
+{\tt node} which determines the peer, from that the retrieval is started, and 
+{\tt key}, that defines the key to lookup. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > retrieve -node mypeer1 -key test
+Values associated with key 'test':
+test
+Values retrieved from node 'mypeer1'
+oc >
+\end{verbatim}
+%
+\item {\tt remove}: This command removes previously inserted data from 
+the Chord DHT and its parameters are the same as for the insert command. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > remove -node mypeer1 -key test -value test
+Value 'test' with key 'test' removed successfully from node 'mypeer1'.
+oc >
+\end{verbatim}
+After execution of this command, the command {\tt entries} should yield no 
+peer, that holds any data. 
+%
+\item {\tt refs}: This command prints the reference a peer has in 
+its finger table (\cite{stoica01chord}). It requires one parameter 
+{\tt node}, that defines the name of the node, whose finger table 
+is shown. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > refs -node mypeer3
+Retrieving node mypeer3
+Finger table:
+  E5 (0-155)
+  19 (156-157)
+  21 (158)
+  BE (159)
+
+oc >
+\end{verbatim}
+This command prints the identifier of a peer in the finger table and 
+behind an identifier a range of numbers. 
+This range represents the indexes the node with that identifier has in 
+the finger table.
+%
+\item {\tt successors}: This command prints out the successors 
+(\cite{stoica01chord}) of a peer. It requires one parameter 
+{\tt node}, that defines the name of the node, whose finger table 
+is shown. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > successors -node mypeer1
+Successor List:
+  19
+  21
+
+oc >
+\end{verbatim}
+%
+\item {\tt shutdown}: This command can be used to orderly shutdown 
+a number of nodes of the Chord DHT, that then notify their predecessors and 
+successors in the Chord ring, so that they can update their finger 
+tables and successor lists. This command requires one parameter 
+called {\tt names}, that defines a list of names of peers in a similar 
+fashion as the {\tt create} command. This command has an optional 
+parameter {\tt all}, which shuts down all peers. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > shutdown -names mypeer2
+Node with name mypeer2 left.
+oc >
+\end{verbatim}
+%
+\item {\tt crash}: This command can be used to simulate the crash 
+of a number of peers. These peers do not notify their predecessors
+and successors. This command requires one parameter 
+called {\tt names}, that defines a list of names of peers in a similar 
+fashion as the {\tt create} command. This command also has an optional 
+parameter {\tt all}, which crashes all peers. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > crash -names mypeer3
+Crashing node mypeer3.
+Node with name mypeer3 crashed.
+oc >
+\end{verbatim}
+%
+\item {\tt show}: This command displays the peers currently running 
+in the order they are located on the Chord ring. It possesses an optional 
+parameter {\tt count}, that requires no value and counts the 
+number of peers currently running. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > show
+Node list in the order as nodes are located on chord ring:
+Node mypeer0 with id 19
+Node mypeer4 with id 21
+Node mypeer5 with id D9
+Node mypeer1 with id E5
+oc > show -count
+No. of nodes currently running 4
+oc > 
+\end{verbatim}
+\end{itemize}
+
+\subsection{Connecting to and using a remote network}\label{remotecom}
+The console can also be used to create a network with help of the 
+{\tt ocsocket} communication protocol. For this purpose within one 
+console a single Open Chord peer using the {\tt ocsocket} protocol 
+is instantiated. The invocations (e.g. insert) are performed with help 
+of the (synchronous) methods of {\tt Chord} interface. 
+
+\begin{itemize}
+%
+\item {\tt joinN}: This command is used to create a single peer within 
+a JVM. If no parameters are provided the peer creates a new network and 
+listens on the standard port ({\tt 4242}) of Open Chord. 
+
+Within one console assumed to run on a machine with IP-address 
+{\tt 192.168.0.1} just type {\tt joinN} and hit enter. 
+The following should be the result. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > joinN
+Creating new chord overlay network!
+URL of created chord node ocsocket://192.168.0.1/.
+oc >
+\end{verbatim}
+
+In another console assumed to run on a machine with IP-address 
+{\tt 192.168.0.2} just do the following. 
+
+\begin{verbatim}
+oc > joinN -port 8080 -bootstrap 192.168.0.1:4242
+Trying to join chord network with boostrap URL ocsocket://192.168.0.1:4242/
+URL of created chord node ocsocket://192.168.0.2:8080/.
+oc >
+\end{verbatim}
+
+The {\tt port} parameter can be used to define a port different from the 
+standard port. The {\tt bootstrap} parameter requires the host and the port 
+of the bootstrap peer in the format shown above. 
+%
+\item {\tt insertN}: This command inserts a {\tt String} into the DHT. It requires 
+two parameters: {\tt key} and {\tt value}. Both parameters are {\tt String}s and 
+the first defines the key, with which the {\tt String} defined with help of the second, 
+is inserted into the DHT. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > insertN -key test -value test
+oc >
+\end{verbatim}
+%
+\item {\tt retrieveN}: This command retrieves all data stored with 
+the key provided with help of {\tt key} parameter. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > retrieveN -key test
+Values associated with key 'test':
+test
+oc >
+\end{verbatim}
+%
+\item {\tt removeN}: This command requires the same parameters as 
+{\tt insertN} and removes the provided {\tt String} stored with 
+the provided {\tt key}. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > removeN -key test -value test
+Value 'test' with key 'test' removed.
+oc >
+\end{verbatim}
+%
+\item {\tt refsN}: This command shows the finger table, successor list, and 
+predecessor of the Open Chord peer, which is running in the JVM of the console. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > refsN
+Node: 0C
+Finger table:
+  7D (0-158)
+Successor List:
+  7D
+Predecessor: 7D
+oc >
+\end{verbatim}
+%
+\item {\tt entriesN}: This command shows the data stored by the Open Chord peer, 
+which is running in the JVM of the console. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > entriesN
+Entries:
+  key = A9 , value = [( key = A9 , value = test)]
+
+oc >
+\end{verbatim}
+%
+\item {\tt leaveN}: This command causes the peer to leave the DHT in an orderly 
+fashion, so that it notifies its predecessor and successors about its departure. 
+
+{\bf Example:}
+\begin{verbatim}
+oc > leaveN
+Leaving network.
+oc >
+\end{verbatim}
+
+\end{itemize}

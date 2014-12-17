@@ -1,0 +1,42 @@
+%\input{dipl-vorlage.tex}
+\input{include/vorlage.tex}
+\begin{document}
+%
+% Titelblatt erstellen
+\selectlanguage{english}
+\maketitle{Open Chord version 1.0.4}{Sven Kaffille, 
+sven.kaffille@uni-bamberg.de}{22.10.2007}{Karsten Loesing,
+karsten.loesing@uni-bamberg.de}%% Erstellung der Inhaltsverzeichnisse
+\pagenumbering{Roman}
+\tableofcontents
+%\newpage
+%\listoffigures
+%\newpage
+%\listoftables
+%\newpage
+%\abkuerzungen
+\newpage\setcounter{page}{1}
+\pagenumbering{arabic}
+%
+% hier einzelne Kapitel mit \input{Kapitel-File} einfgen
+%
+\input{sections/introduction.tex}
+\newpage
+\input{sections/requirements-installation.tex}
+\newpage
+\input{sections/usage.tex}
+\newpage
+\input{sections/console.tex}
+\newpage
+\input{sections/conclusion.tex}
+%
+\newpage
+%
+% Einstellungen für Literaturverzeichnis
+\addcontentsline{toc}{section}{\bibname}
+\bibliographystyle{IEEEtran}
+%
+% hier den bib-file einbinden
+\bibliography{references}
+\end{document}
+

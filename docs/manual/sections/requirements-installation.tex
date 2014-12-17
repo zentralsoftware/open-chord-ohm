@@ -1,0 +1,139 @@
+\section{Setting up Open Chord} 
+This section describes what is required to use Open Chord and how to compile and configure it. 
+
+\subsection{Requirements}
+As Open Chord is Java-based it can be run on any Operating System, for which a 
+Java Virtual Machine for Java 5.0 is available. 
+In order to be compiled Open Chord requires: 
+\begin{itemize}
+\vspace{-0.5cm}
+\setlength\itemsep{-1ex}
+\item Java 2 Platform Standard Edition Development Kit 5.0, 
+\item the Apache Ant\footnote{http://ant.apache.org/} build tool, 
+\item and a library of Apache log4j logging framework, that 
+must be placed in the {\tt lib} directory and can be obtained from the 
+Apache Software Foundation\footnote{http://logging.apache.org/}
+\end{itemize}
+\vspace{-0.5cm}
+In order to be executed Open Chord just requires a Java 2 Platform Standard Edition 
+Runtime Environment 5.0. Log4j is only required to compile Open Chord and does not need to 
+be available at runtime. 
+
+\subsection{Installation}\label{installation}
+In order to install Open Chord it has to be downloaded from its website\footnote{http://www.lspi.wiai.uni-bamberg.de/dmsg/software/open\_chord/}. There 
+the sources and any other files required can be found in zip archive. 
+This archive has to be extracted in any desired directory. 
+
+The contents of the directory after extraction should contain the following 
+directories and files: 
+\vspace{-0.5cm}
+\begin{itemize}
+\item {\tt bin}: This directory contains scripts to start the Open Chord Console. The instructions in these scripts work only in the directory structure described here. 
+\item {\tt build}: This folder contains the compiled source files after Open Chord 
+has been compiled. 
+\item {\tt config}: Within this folder the configuration file (Java property file) for Open Chord and a sample configuration file for log4j reside. 
+\item {\tt dist}: If a jar file of Open Chord is created during compilation, this directory will contain it. 
+should be created during the compilation process. 
+\item {\tt docs}: This directory contains this manual and the Open Chord API description. 
+\item {\tt lib}: This directory contains third party libraries used by Open Chord. 
+Currently the only required library is log4j. 
+\item {\tt src}: This directory contains the source files of Open Chord. 
+\item {\tt build.xml}: This is the build file used to compile Open Chord with help 
+of the Ant build tool. 
+\item {\tt license.txt}: This file contains a copy of GNU General Public License. 
+\end{itemize}
+\vspace{-0.5cm}
+
+\subsection{Compilation}
+Open Chord can be compiled with help of the Apache Ant build tool, that can be obtained 
+from the Apache Software Foundation for free. For this purpose Open Chord is 
+distributed with an Ant build file ({\tt build.xml}). This build file contains the 
+following targets\footnote{Please refer to the Ant User's Manual for details on how to use Ant. http://ant.apache.org/manual/index.html}: 
+\vspace{-0.5cm}
+\begin{itemize}
+\setlength\itemsep{-1ex}
+\item {\tt clean}: Deletes the {\tt build} and {\tt dist} directories.
+\item {\tt init}: Creates {\tt build} and {\tt dist} directories if they do not exist. 
+\item {\tt compile}: Compiles Open Chord to the {\tt build} directory. 
+\item {\tt dist}: Compiles Open Chord to the {\tt build} directory and creates a 
+jar file within {\tt dist} directory. 
+\item {\tt documentation}: Creates Javadoc API documentation in the {\tt docs directory}. 
+\end{itemize}
+\vspace{-0.5cm}
+To compile Open Chord at the command line of your Operating System change to the directory, where the Open Chord build file ({\tt build.xml}) is located. 
+After Open Chord has been successfully compiled, change to the bin directory and 
+execute the script to start the Open Chord Console for your Operating System (e.g. for Microsoft Windows execute {\tt console.bat}). 
+Type {\tt ant compile} to create the class files for Open Chord. If you want to create a jar file, that can be used as a library for Java applications type {\tt ant dist}. 
+In order to use Open Chord as a library for other applications make sure, that the configuration file for Open Chord is available from the classpath of these applications. 
+
+\subsection{Configuration}\label{config} 
+Open Chord can be configured with a Java property file, which is located in the {\tt config} directory as mentioned above. In this section the possible properties that can 
+be set to adjust Open Chord are explained. 
+
+The properties to configure can roughly be divided into three categories. Properties 
+to configure logging of Open Chord, properties to configure maintenance and replication\footnote{For information on how maintenance and replication is conducted 
+in Chord refer to \cite{stoica01chord}} within DHT, properties to configure handling 
+of incoming requests. 
+
+The properties to configure logging of Open Chord are: 
+\begin{itemize}
+\item {\tt de.uniba.wiai.lspi.util.logging.logger.class}:\\ 
+This property specifies the 
+fully qualified name (FQN) of the logger implementation that is used to log messages 
+of Open Chord. Currently a Logger, that just logs on the console ({\tt de.\-uniba.\-wiai.\-lspi.\-util.\-logging.\-SystemOutPrintlnLogger}), and a logger that wraps 
+log4j ({\tt de.\-uniba.\-wiai.\-lspi.\-util.\-log\-ging.\-Log4jLogger}) are available. The latter 
+is the standard logger if no logger has been specified. If log4j or a specified custom logger cannot be found on the classpath logging is turned off. So Open Chord can even run if log4j or the specified custom logger are not available. 
+\item {\tt de.uniba.wiai.lspi.util.logging.off}:\\ 
+If this property is set to {\tt true}, 
+no logging is performed by Open Chord. This is automatically set to true if the
+standard logger or the logger specified with help of the property above cannot be 
+found. 
+\item {\tt log4j.properties.file}:\\ 
+This property defines the name of the property file, 
+that is used to configure log4j. If the file is available from the classpath it can just be the file name. If the file is located in a directory not on the classpath, this 
+must be the full path to the file in a format suitable for your operating system. 
+\item 
+{\tt de.\-uniba.\-wiai.\-lspi.\-Chord.\-data.\-ID.\-number.\-of.\-displayed.\-bytes}:\\
+This property defines how many bytes of an identifier of a peer or data item within 
+the DHT should be displayed in logging output. 
+\end{itemize} 
+
+The properties to configure maintenance and replication of the Open Chord DHT are: 
+\begin{itemize}
+\item {\tt de.uniba.wiai.lspi.chord.service.impl.ChordImpl.successors}:\\  This property 
+must be set to an integer value that represents the number of replicas that are created 
+from a data value. 
+\item {\tt de.uniba.wiai.lspi.chord.service.impl.ChordImpl.StabilizeTask.start}:\\  This 
+property must be set to an integer value, that specifies the number of seconds to wait 
+until the task to stabilize the Open Chord network is started, after Open Chord has 
+been initialized. 
+\item {\tt de.uniba.wiai.lspi.chord.service.impl.ChordImpl.StabilizeTask.interval}:\\  This property specifies (with help of an integer value) the timespan in seconds between 
+successive executions of the task to stabilize the Open Chord network. 
+\item {\tt de.uniba.wiai.lspi.chord.service.impl.ChordImpl.FixFingerTask.start}:\\  This 
+property must be set to an integer value, that specifies the number of seconds to wait 
+until the task to fix the routing table of an Open Chord peer is started, after Open Chord has been initialized. 
+\item {\tt de.uniba.wiai.lspi.chord.service.impl.ChordImpl.FixFingerTask.interval}:\\  
+This property specifies (with help of an integer value) the timespan in seconds between 
+successive executions of the task to fix the routing table of an Open Chord peer. 
+\item {\tt de.uniba.wiai.lspi.chord.service.impl.ChordImpl.CheckPredecessorTask.start}:\\  
+This property must be set to an integer value, that specifies the number of seconds to wait until the task to check the predecessor of an Open Chord peer is started, after Open Chord has been initialized. 
+\item {\tt de.uniba.wiai.lspi.chord.service.impl.ChordImpl.CheckPredecessorTask.interval}:\\ 
+This property specifies (with help of an integer value) the timespan in seconds between 
+successive executions of the task to check the predecessor of an Open Chord peer.
+\end{itemize}
+
+The properties to configure the number of concurrently serviceable requests from other 
+peers are: 
+\begin{itemize}
+\item {\tt de.uniba.wiai.lspi.chord.com.socket.InvocationThread.corepoolsize}:\\ This 
+property must be set to an integer value, that specifies the number of threads that 
+are always available to serve incoming requests from other Open Chord peers. 
+\item {\tt de.uniba.wiai.lspi.chord.com.socket.InvocationThread.maxpoolsize}:\\ This 
+property must be set to an integer value, which specifies the maximum number of threads that can be available to serve incoming requests from other Open Chord peers. 
+\item {\tt de.uniba.wiai.lspi.chord.com.socket.InvocationThread.keepalivetime}:\\ This 
+property defines in seconds how long threads for incoming requests are allowed to be 
+kept alive when they are idle. 
+\end{itemize}
+
+\subsection{Execution}\label{execution}
+You may start Open Chord either by starting the Open Chord console (see section \ref{sectionconsole}) or by initializing an Open Chord peer and invoking API methods (see section \ref{usage}) in your own project. In the latter case you need to make sure that the classpath is set correctly. Apart from the Open Chord classes, you need to include the {\tt /config} directory and maybe a log4j library in the classpath. The {\tt /config} directory contains a property file for Open Chord which is required to run Open Chord. This properties must be loaded before intializing Open Chord or you may also set the properties specified in {\tt chord.properties} within your code with help of {\tt System.setProperty(String, String)}.

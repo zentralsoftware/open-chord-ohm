@@ -1,0 +1,340 @@
+\section{Using Open Chord}\label{usage}
+After Open Chord has successfully been compiled and set up, it can be used from 
+any Java application. This section describes the interfaces of Open Chord and how they 
+can be used. For this purpose first a short overview of the architecture and the 
+available communication protocols is provided. Afterward the interfaces relevant to 
+an application programmer and their usage in typical use cases as e.g. creating and 
+joining a network or inserting and retrieving data from the DHT are explained. 
+
+\subsection{Architecture of Open Chord}
+The architecture of Open Chord is divided into three layers. These layers are shown 
+in figure \ref{architecture} below the layer that represents a Java application, that 
+uses Open Chord. 
+On the lowest layer the implementation of the employed communication 
+protocol based on a network communication protocol (e.g. Java Sockets) is located. On 
+top of this communication layer a communication abstraction layer resides, 
+that provides interfaces, which abstract from the actually used 
+communication protocol. 
+
+\bildw{architecture}{architecture}{Architecture of Open Chord.}{13}
+
+For this purpose two abstract classes have been developed, which represent the 
+communication abstraction layer, and provide factory methods, to create instances of themselves for a specific communication protocol. The 
+communication abstraction layer provides interfaces for synchronous communication 
+between peers. Instances of class represent {\tt de.uniba.wiai.lspi.chord.com.Proxy} 
+({\tt Proxy}) references to remote peers participating in an Open Chord overlay 
+network. For each node in a Open Chord network an instance of 
+{\tt de.uniba.wiai.lspi.chord.com.Endpoint} ({\tt Endpoint}) provides a connection 
+point for remote peers with help of {\tt Proxy} for a 
+specific communication protocol. The concrete implementations for a communication protocol are determined with help of the URL of a peer\footnote{This mapping from 
+communication protocol (with help of URL) to the {\tt Proxy} of {\tt Endpoint} 
+implementation is currently hard-coded within the corresponding factory methods}. 
+
+Based on the communication abstraction layer the logic of the Chord overlay network 
+such as how to find the successor of a peer\footnote{For details how the Chord 
+DHT works refer to \cite{stoica01chord}.} has been implemented. 
+This layer provides two interfaces to Java applications, which abstract from 
+the implementation of routing within the Chord DHT. One interface 
+{\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-service.\-Chord} ({\tt Chord}) provides 
+synchronous methods to retrieve, store, and remove values within the DHT. 
+The other interface {\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-service.\-AsynChord} 
+({\tt AsynChord}) can be used for asynchronous retrieval, storage, and 
+removal of data from the DHT. 
+The Chord logic layer also is responsible for replication of data and maintenance 
+of the properties that are necessary to keep the DHT running as described in 
+\cite{stoica01chord}. This processes are transparent to the application using 
+Open Chord, but must be configured as described in section \ref{config}. 
+
+\subsection{Available communication protocols} 
+Currently two communication protocol implementations are available for Open Chord: 
+%
+\begin{enumerate}
+%
+\item Local (within one JVM) communication protocol {\tt oclocal}: The implementation 
+of this protocol (with help of sub-classes of {\tt Proxy} and {\tt Endpoint}) can be 
+found in package {\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-com.\-local}. This protocol has been developed in order to facilitate creation of an Open Chord network within a 
+single JVM for testing purposes. 
+%
+\item Socket-based protocol {\tt ocsocket}: The implementation 
+of this protocol (with help of sub-classes of {\tt Proxy} and {\tt Endpoint}) can be 
+found in package {\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-com.\-socket}. This protocol 
+facilitates reliable communication between Open Chord peers based on TCP/IP sockets. 
+%
+\end{enumerate}
+%
+The protocol, which is used by an Open Chord peer is determined by its {\tt URL}. 
+An implementation of {\tt URL} is provided in package {\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-data}. This {\tt URL} currently provides some public 
+constants, which can be used to create Strings representing an appropriate {\tt URL} 
+for one of the protocols described above. The String array {\tt URL.KNOWN$\_$PROTOCOLS} 
+contains the names of the two protocols and the integer constants 
+{\tt URL.LOCAL$\_$PROTOCOL} and  {\tt URL.SOCKET$\_$PROTOCOL} represent their 
+corresponding index\footnote{This should be changed in future releases to allow 
+addition of custom communication protocols without change of implementation of 
+{\tt URL} and factory methods of {\tt Proxy} and {\tt Endpoint}.}. So this can 
+be used to create appropriate Strings representing an {\tt URL}, which can be 
+used with the public constructor {\tt URL(String url)}. 
+%
+\subsection{The Chord and AsynChord interfaces}\label{interfaces} 
+As presented before (figure \ref{architecture}) Open Chord provides two interfaces, 
+which can be used by an application built on-top of Open Chord to retrieve, 
+remove, and store data from/to the underlying DHT. These interfaces ({\tt Chord}, 
+{\tt AsynChord}) provide some common methods that are important to create, join, and 
+leave an Open Chord DHT. These methods are shown in listing \ref{common}. 
+
+Each peer within an Open Chord DHT is represented by a unique identifier as proposed 
+in \cite{stoica01chord}. This unique identifier is usually created with help of 
+the {\tt URL} of a peer, when it creates or joins a network or the method, 
+{\tt setURL(URL nodeURL)} is invoked. An identifier of a peer is represented by 
+the class {\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-data.\-ID}. An unique identifier 
+of a peer can also be set by the application with help of the method {\tt setID(ID nodeID)}. Setting the {\tt URL} or {\tt ID} of a peer is only allowed {\bf before} 
+an Open Chord network is joined or created. 
+
+A new network can be created with help of the methods {\tt create()}, {\tt create(URL localURL)}, and {\tt create(URL localURL, ID localID)}. The first method can only be 
+invoked if an {\tt URL} and an {\tt ID} is set for a peer. An {\tt ID} is automatically 
+generated when an {\tt URL} is set. So when a custom {\tt ID} should be provided, the 
+method {\tt setID(ID nodeID)} must be invoked {\bf after} invocation of 
+{\tt setURL(URL nodeURL)}. The second {\tt create} method is a convenience method to 
+avoid setting of an {\tt URL} before creation of a peer. The third {\tt create} method 
+can be used to create a peer that listens on the provided {\tt URL localURL} and 
+has the {\tt ID localID}.
+%
+\javafile{CommonMethods.java}{Common Methods.}{common}
+%
+The join methods allow a peer to join an existing 
+Open Chord network. These methods correspond to the functionality of the three 
+{\tt create} methods regarding the unique identifier of a peer, but need a further 
+parameter, which is a {\tt URL} of a so-called bootstrap peer, that can be used 
+by the peer, that wants to join, to get access to the existing DHT. How such a 
+{\tt URL} can be found is out of scope of Open Chord and depends on the application, 
+which is built on top of it. 
+
+Although Open Chord handles crashes and desertion\footnote{A peer does not crash but leaves the network without notifying other peers} of peers transparently, it is 
+recommended for a peer to announce to others, when it leaves the Open Chord network. 
+For this purpose the two interfaces provide the method {\tt leave()}. By invocation 
+of this method the peer makes sure that the routing tables of its neighbors immediately 
+reflect the change within the network. 
+
+In addition to these methods the {\tt Chord} interface provides the methods shown 
+in listing \ref{chord}. They can be used to retrieve, insert, and remove 
+data. As data is associated with a unique identifier within a DHT 
+an instance of interface {\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-service.\-Key} 
+({\tt Key}) must be provided for these methods, 
+with which the data to retrieve, insert, or remove can 
+be associated. Any {\tt Serializable} Java object can be associated with a custom 
+{\tt Key} implementation. 
+
+\javafile{Chord.java}{The {\tt Chord} interface.}{chord}
+
+A {\tt Key} implementation must just be able to create a 
+byte representation of itself, which can be obtained by its {\tt getBytes()} method 
+within a byte array. These bytes are used by Open Chord to create a hash value for 
+a given data item with help of a hash function. As more than one instance may be 
+associated with a single {\tt Key} an invocation of {\tt retrieve(Key key)} may return 
+a {\tt Set} of associated instances. For {\tt Key } implementations and classes, whose 
+instances should be stored in the DHT, it is strongly recommended (as with every class 
+used in data structures or the Java Collections API) to overwrite the 
+{\tt equals(Object)} and {\tt hashCode()} method of class {\tt Object} to ensure 
+that Open Chord can correctly manage data storage. 
+
+The method {\tt insert(Key key, Serializable entry)} inserts the provided instance 
+{\tt entry} into the DHT associated with the given {\tt key}. This {\tt key} can 
+later on be used to retrieve or remove {\tt entry}. In order to remove an {\tt entry}
+the {\tt entry} and its {\tt key} must be known, as indicated by the method 
+{\tt remove(Key key, Serializable entry)}. 
+
+It is {\bf important} to note that, with the current implementation of Open Chord, 
+class definitions (the byte code of classes), whose instances are used as {\tt Key} 
+or as data associated with a {\tt Key} must be present on every peer within the 
+network as Open Chord does not support class loading from remote peers. 
+
+The methods of the {\tt Chord} interface are synchronous and block the thread, that 
+invokes them, until the operation has been performed and a result has been obtained. 
+This may not be desired in all cases, as invocation of the methods described above 
+may take some time. While data is retrieved it may be possible that the same thread, 
+which wants the data, wants to insert, remove or retrieve some other data in parallel. 
+For this purpose Open Chord provides an interface with methods, that allow 
+asynchronous processing of data retrieval, removal, and storage. 
+
+These methods can be divided into two kinds. The first kind of methods presented in 
+listing \ref{asynchord} in addition to the provided {\tt Key} or data requires an 
+instance of interface 
+{\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-service.\-ChordCallback}, which is presented 
+in listing \ref{callback}. 
+The other kind of methods returns instances of 
+{\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-service.\-ChordFuture} 
+(listing \ref{chordfuture}), which can be used later on to determine if an 
+asynchronous invocation has been completed and to obtain its result 
+(if necessary). 
+
+\javafile{ChordCallback.java}{The {\tt ChordCallback} interface.}{callback}
+
+The methods of the first kind require an instance of {\tt ChordCallback}, which 
+is notified, when asynchronously performed retrieval, removal, or storage of data 
+has been completed. These methods return directly after invocation and notification 
+takes place with help of the corresponding callback method {\tt retrieved(...)}, 
+{\tt removed(...)}, or {\tt inserted(...)}. 
+To these method the affected {\tt Key} and {\tt entry} (if required) or result 
+(in case of data retrieval) is provided. If the processing of retrieval, removal, 
+or storage of data has failed a {\tt Throwable} that represents the cause of 
+the failure is provided. This {\tt Throwable} is {\tt null} if invocation 
+completes successfully. 
+
+\javafile{AsynChord.java}{The {\tt AsynChord} interface.}{asynchord}
+
+%HIER WEITER...
+The second kind of methods does not require a callback object as a parameter, but 
+instead immediately returns an instance of {\tt ChordFuture}. The methods to insert 
+and remove data both return an instance of {\tt ChordFuture} which can be used 
+to test if the corresponding invocation of {\tt insertAsync(...)} or {\tt removeAsync(...)} has been done with help of the {\tt isDone()} method. 
+%
+\javafile{ChordFuture.java}{The {\tt ChordFuture} interface.}{chordfuture}
+%
+The {\tt isDone()}  
+method returns {\tt true} when the invocation has been performed successfully. 
+When the invocation is still being performed {\tt false} is returned. When 
+the invocation has been performed, but has failed, a {\tt ServiceException} 
+is thrown by {\tt isDone()}. 
+If a thread wants to wait until the operation associated with a {\tt ChordFuture} 
+finishes, it can invoke {\tt waitForBeingDone()}, which blocks the calling thread 
+until the end of the operation. This method throws a {\tt ServiceException} if the 
+operation fails and an {\tt InterruptedException} occurs when the thread has been 
+interrupted. When this method returns the associated operation has been performed. 
+
+\javafile{ChordRetrievalFuture.java}{The {\tt ChordRetrievalFuture} interface.}{chordretrievalfuture}
+
+The method to retrieve data from the DHT returns a {\tt ChordRetrievalFuture} presented 
+in listing \ref{chordretrievalfuture}. This interface extends {\tt ChordFuture} by a method to obtain the result of the retrieval. This method behaves like 
+{\tt waitForBeingDone()} regarding the declared exceptions, but returns the result 
+as soon as the retrieval has been performed to the calling thread. If there is no 
+data associated with the provided {\tt Key} an empty {\tt Set} is returned. 
+
+\subsection{Examples}
+\subsubsection{Creating a new Chord overlay network} 
+In order to create a new network one of the {\tt create(...)} methods 
+of the {\tt Chord} interface or {\tt AsynChord} interface has to be invoked 
+on an instance of 
+{\tt de.\-uniba.\-wiai.\-lspi.\-chord.\-service.\-impl.\-ChordImpl}. 
+
+\javafile{CreateNetwork.java}{Creating an Open Chord network.}{create}
+
+{\tt ChordImpl} implements both interfaces. An instance of it can be created with help of its public constructor. Listing \ref{create} shows an example for creation of a new 
+network. For this purpose a {\tt URL} for the {\tt ocsocket} protocol is created. 
+This {\tt URL} becomes the {\tt URL} of the Open Chord peer. It is recommended to 
+automatically determine the host name and IP-address of a peer with help of 
+{\tt java.net.InetAddress} and to use the hosts IP-address as the host part of 
+the {\tt URL}. 
+
+\subsubsection{Joining an existing Chord overlay network} 
+
+Only the first peer of an Open Chord network can create a network. To add peers 
+to an existing network one of the {\tt join(...)} methods of {\tt Chord} or 
+{\tt AsynChord} has to be invoked. Listing \ref{join} shows how an existing 
+network can be joined. 
+
+\javafile{JoinNetwork.java}{Joining an Open Chord network.}{join}
+
+This works similar to network creation, but additionally a {\tt URL} of 
+a peer, which already is part of the network, that should be joined, is required. 
+This peer is called a bootstrap peer and its {\tt URL} is called a bootstrap 
+{\tt URL}. How this {\tt URL} is obtained depends on the application, that wants 
+to use the DHT. Both {\tt URL}s used in listing \ref{join} must represent an 
+{\tt URL} of the same protocol. 
+
+Please note that the {\tt URL} of a peer must reflect the real host name of the host 
+on which the peer is located. In this examples we used {\tt localhost}, so that the examples 
+can only be executed on one machine. It is possible to provide the host name as a parameter 
+to the main method or to determine it with help of the Java API ({\tt java.net.InetAddress}). 
+It is also possible to create more than one chord peer (that uses the {\tt ocsocket} protocol) 
+within one JVM. 
+
+\subsubsection{Leaving a network}  
+To leave a network the {\tt leave()} method of {\tt Chord} or {\tt AsynChord} has 
+to be invoked. 
+
+\subsubsection{Inserting and Removing data} 
+
+In order to work with the DHT at least one implementation of the {\tt Key} 
+interface must be provided. Nevertheless one instance of the DHT can be used 
+with several {\tt Key} implementations. For the following examples a {\tt Key}
+implementation (listing \ref{key}), which uses a {\tt String} as key, is used.
+
+\javafile{StringKey.java}{A {\tt Key} implementation.}{key}
+
+To synchronously insert data into the DHT a reference to the DHT of type 
+{\tt Chord} is required. On this instance the insert method can be invoked 
+as shown in listing \ref{insertsynch}. Asynchronous insertion of data 
+can be performed with help of a reference to the DHT of type {\tt AsynChord}. 
+
+\javafile{SynchronousInsert.java}{Inserting data.}{insertsynch}
+
+Asynchronous use of the DHT is shown with help of removal of data, which is 
+analogous to asynchronous insertion of data. Two possibilities exist for 
+asynchronous used as described in section \ref{interfaces}. First removal of 
+data using a {\tt ChordFuture} is shown in listing \ref{removeasynchf}. 
+
+\javafile{AsynchronousRemoveFuture.java}{Removing data asynchronously.}{removeasynchf}
+
+The method {\tt removeAsync(...)} in line 7 of listing \ref{removeasynchf} returns 
+immediately and provides an instance of {\tt ChordFuture} to the calling thread. 
+This instance ({\tt future}) can later on be used to test if the removal has finished, when it is necessary to know, that the removal has been performed. For this 
+purpose in line 12 it is tested if this is the case. If it is not true, 
+{\tt future.waitForBeingDone()} is invoked to block the thread until the removal 
+has been performed. As the thread may be interrupted while waiting, a while loop 
+(line 13) ensures that the thread really waits until the removal has finished. 
+Insertion of data with this invocation model is performed analogously. 
+
+Another possibility to remove or insert data is to use the corresponding method 
+of {\tt AsynChord}, which requires an instance of {\tt ChordCallback} as 
+a parameter. Listings \ref{mycallback} and \ref{callbackremove} show an 
+implementation of {\tt ChordCallback} and how an invocation to 
+remove data is made with this model. 
+
+\javafile{MyCallback.java}{A sample callback implementation.}{mycallback}
+
+\javafile{CallbackUsage.java}{Removing data asynchronously with help of a callback instance.}{callbackremove}
+
+The {\tt ChordCallback} implementation just prints a message to the standard output 
+of the JVM if removal of data is successfully performed. If removal fails, a message 
+is printed to the error output of the JVM and the stack trace of the {\tt Throwable}, 
+that caused the failure, is printed. In order to remove data the {\tt remove(...)} 
+method of {\tt AsynChord} has to be invoked and provided with an instance of the 
+callback. The method returns immediately and the removal is performed asynchronously. 
+As soon as the removal has been performed, the {\tt removed(...)} method of 
+{\tt MyCallback} is invoked and one of the messages described above is being printed. 
+Insertion of data is processed analogously to removal of data. 
+
+\subsubsection{Data retrieval} 
+In order to retrieve data from the DHT there are also three possibilities as for 
+insertion or removal of data. These work similar to the invocations described in 
+the previous section. Therefore here no code samples are presented and the three 
+possibilities are explained shortly. 
+\begin{enumerate}
+%
+\item Synchronous retrieval with {\tt Chord.retrieve(Key key)}: An invocation of this 
+method blocks the calling thread until the retrieval has been performed. A {\tt Set} 
+of the results is returned to the calling thread. 
+%
+\item Asynchronous retrieval with 
+{\tt AsynChord.retrieve(Key key, ChordCallback callback)}:\\ 
+This method returns 
+immediately and the result of the retrieval is provided to the callback instance 
+passed to it through the method 
+{\tt ChordCallback.retrieved(Key key, Set<Serializable> entries, Throwable t)}. 
+The parameter {\tt key} is the key, for which data has been retrieved, {\tt entries} 
+contains the results, and {\tt t} is {\tt null} if the retrieval is successful. 
+When the retrieval has failed, {\tt t} is not {\tt null} and it is an instance of the exception, which has been raised by the retrieval. 
+%
+\item Asynchronous retrieval with {\tt AsynChord.retrieveAsync(Key key)}: \\
+This method immediately returns an instance 
+of {\tt ChordRetrievalFuture} which can be used to obtain the result of the retrieval 
+with help of the method {\tt ChordRetrievalFuture.getResult()}. This method works similar 
+to {\tt ChordFuture.waitForBeingDone()}, but returns a {\tt Set} (possibly empty if 
+no data is associated with the key used for retrieval) as soon as the retrieval has 
+finished. If retrieval fails, a {\tt ServiceException} is raised. As the thread may 
+be interrupted, an {\tt InterruptedException} is thrown in that case. For this reason 
+if the thread invoking {\tt getResult()} must wait until retrieval is finished, the 
+invocation of {\tt getResult()} must be guarded by a while loop as described earlier 
+for {\tt ChordFuture.waitForBeingDone()}. 
+%
+\end{enumerate}
+

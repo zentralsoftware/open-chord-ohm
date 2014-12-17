@@ -1,0 +1,48 @@
+\section{What is Open Chord?}
+As Peer-to-Peer (P2P) computing becomes more important for distributed applications, 
+which have to be reliable, load balanced and scalable, the underlying technologies 
+must also provide these properties. 
+This is also important for data storage in P2P networks. In recent years new data 
+structures -- so-called distributed hash tables (DHT) -- have been shown to provide a 
+reliable, load balanced and scalable mechanism to store data in a P2P network. 
+
+DHT differ from P2P networks developed before (e.g. Gnutella) in their structural 
+organization. While DHTs are based on structured networks, where for example the nodes 
+in the network are organized in a ring, former P2P networks had no structure, which 
+ordered the nodes of the networks in a particular way. Therefore these networks could 
+not provide guarantees for data stored in the network to be found. The structure of DHTs allows to exactly locate desired data with help of a unique key associated to 
+this data similar to conventional hash tables. 
+
+In a DHT every peer of the underlying P2P network takes responsibility for certain data 
+values, that it must store and provide to the other participants of the P2P network. 
+The structure of the P2P network (e.g. ordering of nodes on a ring) is exploited 
+to quickly find and store desired data. 
+Open Chord is an open Java-based\footnote{Sun~Microsystems, ``Java 2 platform, standard edition (j2se) 5.0,'' http://java.sun.com/j2se/1.5.0/download.jsp.} 
+implementation of the Chord DHT described by Stoica et al. in \cite{stoica01chord}. It provides an interface for Java applications to take part as a peer within a DHT and to store and retrieve arbitrary data from this DHT. So Java-based P2P applications can benefit from properties of DHTs. 
+Open Chord is called open, as it is distributed under GNU General Public License (GPL)
+\footnote{Free Software~Foundation, ``Gnu general public license,'' 
+http://www.gnu.org/copyleft/gpl.html}, so that it can be used and extended for own purposes for free and as desired. 
+
+In the following section this manual first describes what is required to and how to install Open Chord. For this purpose the compilation process and configuration of Open Chord is explained. The third section explains how the Application Programming 
+Interface (API) of Open Chord can be used by any Java Application. To get a better 
+understanding of what Open Chord is doing the architecture of Open Chord and its 
+interfaces and their usage are described. As Open Chord comes with a command line 
+interface, that can be used to test an instance of an Open Chord DHT or create one DHT 
+consisting of several nodes within one Java Virtual Machine, section four deals with 
+the Open Chord console. Section five describes current limitations of Open Chord.  
+
+\subsection{Features of Open Chord}
+Open Chord provides the following features to a Java application: 
+\begin{itemize}
+\vspace{-0.5cm}
+\setlength\itemsep{-1ex}
+\item Easy to use interfaces for synchronous and asynchronous utilization of 
+a Chord \cite{stoica01chord} DHT. 
+\item Possibility to store every serializable Java object within the DHT. 
+\item Creation of custom keys to associated data with. 
+\item Transparent maintenance of Chord DHT routing. 
+\item Transparent replication of stored data. 
+\item A remote communication protocol based on Java sockets. 
+\item A local communication protocol for testing and presentation 
+purposes. 
+\end{itemize}

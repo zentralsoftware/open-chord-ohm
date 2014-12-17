@@ -1,0 +1,74 @@
+\input{include/html_vorlage.tex}
+\begin{document}
+%
+% Titelblatt erstellen
+%\maketitle{OCoN Framework version 1.0}{Jens Bruhn, 
+%jens.bruhn@uni-bamberg.de}{08.06.2004}{Sven Kaffille, 
+%sven.kaffille@uni-bamberg.de}%
+
+\begin{titlepage}
+
+\begin{tabular}{ccc}
+\includegraphics[height=26mm]{include/logo} &
+
+\parbox{11cm}{
+  \vspace{-2.6cm}
+  \begin{center}
+  Otto-Friedrich-Universit\"at Bamberg \newline 
+  {\Large Distributed and Mobile Systems Group}
+  \end{center}
+} &
+
+\includegraphics[height=26mm]{include/uni}\\
+\multicolumn{3}{c}{
+  \parbox{11cm}{
+    \begin{center}
+    {\Large
+    Open Chord version 1.0.4\\ User's Manual}
+    \end{center}
+  }
+}\\
+\end{tabular} 
+\\[24pt]
+%Vorgelegt von:\\
+sven.kaffille@uni-bamberg.de\\
+karsten.loesing@uni-bamberg.de\\[18pt]
+Lehrstuhl f\"ur Praktische Informatik \\
+Otto-Friedrich-Universit\"at Bamberg\\
+Feldkirchenstr. 21\\
+D-96052 Bamberg\\
+GERMANY
+\\[12pt]
+22.10.2007\\
+\newpage
+
+\end{titlepage}
+
+% Erstellung der Inhaltsverzeichnisse
+\pagenumbering{Roman}
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+%\listoftables
+\newpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+%
+% hier einzelne Kapitel mit \input{Kapitel-File} einfgen
+\input{sections/introduction.tex}
+\input{sections/requirements-installation.tex}
+\newpage
+\input{sections/usage.tex}
+\input{sections/console.tex}
+\input{sections/conclusion.tex}%
+%
+\newpage
+%
+% Einstellungen fr Literaturverzeichnis
+\addcontentsline{toc}{section}{\bibname}
+\bibliographystyle{lni}
+%
+% hier den bib-file einbinden
+\bibliography{references}
+\end{document}

@@ -1,0 +1,49 @@
+\section{Limitations of current implementation}
+
+The current Open Chord implementation does not allow remote {\bf class loading}, 
+which makes it necessary, that all implementations of {\tt Key} and all 
+class definitions of objects, which should be stored within the DHT, must 
+be locally available on each peer. There exist two possibilities to circumvent 
+this problem. 
+\begin{enumerate}
+%
+\item A class that is supposed to be used as a {\tt Key} or data within the DHT 
+can be itself saved within the DHT with its fully qualified name as key. This 
+classes can then be loaded by a custom {\tt ClassLoader} that loads classes 
+from the DHT. Details on class loading can be found in \cite{christudas05internals}. 
+Then just the {\tt Key} implementation for keys of class definitions must be 
+present on each peer. 
+%
+\item Another possibility is to store objects in their byte representation 
+within the DHT. To convert objects to their byte representation and 
+recreate an object from this representation the classes {\tt ByteArrayOutputStream}
+and {\tt ByteArrayInputStream} in conjunction with {\tt Object\-Output\-Stream} and 
+{\tt ObjectInputStream} provided in the {\tt java.io} package can be used. 
+This would only provide the possibility to store objects of arbitrary classes 
+as data within the DHT. For keys there still must be a common {\tt Key} 
+implementation, that is available on each peer. 
+%
+\end{enumerate}
+
+It is also not possible to easily {\bf exchange the communication protocol} 
+({\tt ocsocket}
+or {\tt oclocal}) of Open Chord, as the available protocols are hard-coded into 
+the {\tt URL} class. Based on this the factory methods for the corresponding 
+{\tt Proxy} and {\tt Endpoint} implementations are also hard-coded. Therefore to 
+add a new communication protocol to Open Chord not only classes that implement the 
+protocol must be created, but also the factory methods for {\tt Proxy} and 
+{\tt Endpoint} implementations must be changed and the {\tt Proxy} and 
+{\tt Endpoint} classes have to be recompiled. This should be changed into a mechanism 
+that allows registration of new communication protocols and their implementing classes.
+
+Open Chord currently assumes that every participant of the DHT is {\bf trustworthy}. 
+Therefore every participant can remove arbitrary data. This may be prevented by addition 
+of a security manager, that checks incoming requests. Replication is only guaranteed 
+when peers are trustworthy, as not the peer that inserts data, but the peer responsible for a data item is responsible to replicate this item. Also {\bf data of arbitrary size} 
+can be stored in the DHT, as it is assumed that peers are trustworthy. For the same reason peers are expected to remove data they do not need anymore. Therefor data 
+is stored for an arbitrary time in Open Chord, as there exists no 
+{\bf leasing mechanisms}, that can be used to store data for a certain time. 
+
+To get access to the Open Chord DHT the current implementation requires, that 
+an application instantiates a full peer, that provides storage space to the network.
+Therefor it is not possible to use the DHT without participating in it. 
